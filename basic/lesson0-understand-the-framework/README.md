@@ -15,7 +15,8 @@ specification. Data items can be represented by a sequence that contains a list 
 ### Driver (BFM)
 
 ```
-A driver is an active entity that emulates logic that drives the DUT. A typical driver repeatedly receives a data item and drives it to the DUT by sampling and driving the DUT signals.
+A driver is an active entity that emulates logic that drives the DUT. 
+A typical driver repeatedly receives a data item and drives it to the DUT by sampling and driving the DUT signals.
 ```
 
 ### Sequencer
@@ -50,7 +51,8 @@ enable you to customize the topology and behavior and make it reusable.
 
 ```
 A test defines the test scenario for the testbench specified in the test. The test class enables
-configuration of the testbench and verification components, as well as provides data and sequence generation and inline constraints.
+configuration of the testbench and verification components, 
+as well as provides data and sequence generation and inline constraints.
 ```
 
 > Test is not reusable because it rely on a specific environment structure.
@@ -58,7 +60,8 @@ configuration of the testbench and verification components, as well as provides 
 ### Configuration
 
 ```
-UVM provide a class call uvm_config_db to allow different scoped components can share a common pool of configurations. So, user can set a value on the top module and then retrieve that value at component level.
+UVM provide a class call uvm_config_db to allow different scoped components can share a common pool of configurations. 
+For example, user can set a value on the top module and then retrieve that value at component level.
 ```
 
 ## 2. UVM facilities
@@ -66,7 +69,9 @@ UVM provide a class call uvm_config_db to allow different scoped components can 
 ### UVM factory
 
 ```
-UVM factory a built-in central factory that allows controlling object allocation in the entire environment or for specific objects, as well as modifying stimulus data items as well as infrastructure components (for example, a driver).
+UVM factory a built-in central factory that allows controlling object allocation 
+in the entire environment or for specific objects and modifying stimulus data items 
+as well as infrastructure components (for example, a driver).
 ```
 
 ### Transaction-Level Modeling (TLM)
