@@ -13,10 +13,10 @@ module apb_slave (
 );
 
     logic [31:0] reg000, reg008, reg018;
-    logic reg000_en, reg008_en, reg_018_en;
-    logic reg000_wen, reg008_wen, reg_018_wen;
-    logic reg000_ren, reg008_ren, reg_018_ren;
-    logic slv_selected, decode_err;
+    logic reg000_en, reg008_en, reg018_en;
+    logic reg000_wen, reg008_wen, reg018_wen;
+    logic reg000_ren, reg008_ren, reg018_ren;
+    logic slv_enabled, decode_err;
     logic [31:0] prdata_nxt;
     logic pslverr_nxt;
     logic [ 7:0] intr_src;  // interrupt source
@@ -26,7 +26,7 @@ module apb_slave (
     logic [15:0] rx_data;
     logic [15:0] tx_data;
 
-    slv_selected = psel & penable;
+    assign slv_enabled = psel & penable;
     always_comb begin : DECODE
         reg000_en = 0;
         reg008_en = 0;
@@ -40,13 +40,13 @@ module apb_slave (
         endcase
     end
 
-    assign reg000_ren = reg000_en & slv_selected;
-    assign reg008_ren = reg008_en & slv_selected;
-    assign reg018_ren = reg018_en & slv_selected;
+    assign reg000_ren = reg000_en & slv_enabled;
+    assign reg008_ren = reg008_en & slv_enabled;
+    assign reg018_ren = reg018_en & slv_enabled;
 
-    assign reg000_wen = reg000_en & pwrtie & slv_selected;
-    assign reg008_wen = reg008_en & pwrtie & slv_selected;
-    assign reg018_wen = reg018_en & pwrtie & slv_selected;
+    assign reg000_wen = reg000_en & pwrite & slv_enabled;
+    assign reg008_wen = reg008_en & pwrite & slv_enabled;
+    assign reg018_wen = reg018_en & pwrite & slv_enabled;
 
     always @(posedge clk or negedge rstn) begin
         if(~rstn) begin
@@ -87,8 +87,8 @@ module apb_slave (
             pslverr <= '0;
             prdata <= '0;
         end
-        else if(slv_selected) begin
-            pready <= slv_selected;
+        else if(slv_enabled) begin
+            pready <= slv_enabled;
             pslverr <= decode_err;
             prdata <= prdata_nxt;
         end

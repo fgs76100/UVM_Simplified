@@ -1,6 +1,5 @@
-interface apb_if (input clk);
+interface apb_if (input wire clk, input wire rstn);
 
-    logic        rstn;
     logic [11:0] paddr;
     logic        psel;
     logic        penable;
