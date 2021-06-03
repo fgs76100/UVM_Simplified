@@ -1,6 +1,6 @@
 # UVM Framework
 
-## 1. Verification Component Overview
+## Verification Component Overview
 
 The following subsections describe UVM components.
 
@@ -23,7 +23,7 @@ A typical driver repeatedly receives a data item and drives it to the DUT by sam
 
 ```
 A sequencer is stimulus generator that controls the data items that are provided to the driver for
-execution and it also can return the response of the request from the driver.
+execution and it also optionally can return the response from the DUT through the driver.
 ```
 
 ### Monitor
@@ -64,7 +64,7 @@ UVM provide a class call uvm_config_db to allow different scoped components can 
 For example, user can set a value on the top module and then retrieve that value at component level.
 ```
 
-## 2. UVM facilities
+## UVM facilities
 
 ### UVM factory
 

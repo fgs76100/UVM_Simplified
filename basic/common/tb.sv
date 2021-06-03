@@ -1,6 +1,7 @@
 
 // ** import uvm package **
 import uvm_pkg::*;
+// import apb_pkg::*;
 
 `include "uvm_macros.svh"
 
@@ -23,7 +24,7 @@ module tb;
     end
 
     // create apb interface
-    apb_if apb_if0( .clk(clk200M) );
+    apb_if apb_if0( .clk(clk200M), .rstn(rstn) );
 
     // create DUT
     apb_slave dut(
@@ -41,7 +42,7 @@ module tb;
 
     initial begin: UVM
         // everything written here were imported from UVM package.
-        uvm_config_db #(virtual apb_if)::set(null, "uvm_test_top", "apb_if", apb_if0);
+        uvm_config_db #(virtual apb_if)::set(null, "*", "apb_if", apb_if0);
         run_test();
     end
     

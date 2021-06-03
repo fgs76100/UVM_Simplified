@@ -1,15 +1,13 @@
 # Lesson1 - Hello World
 
-## 1. How to include UVM library
+## How to include UVM library
 
-> make sure you enable systemverilog syntax as well.
-
-### include implicitly
+### Include implicitly
 
 > use tool option to import uvm library will import vender-specific one.
 > If you want keep consistency among tools, import explicitly instead.
 
-#### **`verdi`**
+#### verdi
 
 ```bash
 verdi -ntb_opts uvm [other options]
@@ -18,7 +16,7 @@ verdi -ntb_opts uvm [other options]
 #### vcs
 
 ```bash
-vcs -ntb_opts uvm [other options];  # compile
+vcs -ntb_opts uvm [other options]
 ```
 
 #### xrun
@@ -27,29 +25,31 @@ vcs -ntb_opts uvm [other options];  # compile
 xrun -uvm [other options]
 ```
 
-### include explicitly
+> make sure you enable systemverilog syntax as well.
 
-put following line at your `~/.cshrc.my`
+### Include explicitly
+
+You could download the UVM library from [accellera](https://www.accellera.org/downloads/standards/uvm) and follow the readme.
+
+Or you know exactly what library you want to use, just put following line at your `~/.cshrc.my`
 
 ```Tcsh
-setenv UVM_HOME /path/to/uvm/library
+setenv UVM_HOME /path/to/uvm/library/src
 ```
 
-## 2. Your First Hello-World test
+## Your first hello-world test
 
 The most simple environment is as follows:
 
-- uvm_test_top(the root)
+- testbench
   - uvm_test
   - device under test(DUT)
 
->In the UVM framework, the top-level instance(the root) is always `uvm_test_top` or you could get the root instance by using `uvm_root::get()`
+Reader could find the tb.sv, apb_slave.sv and apb_if.sv in the common folder.
 
-Reader could find the examples in the common folder
+### `hello_word_test.sv`
 
-### **`hello_word_test.sv`**
-
-```verilog
+```systemverilog
 class hello_world_test extends uvm_test;
     // register "hello_world_test" to UVM factory
     `uvm_component_utils(hello_world_test)
@@ -78,9 +78,9 @@ class hello_world_test extends uvm_test;
 endclass
 ```
 
-### **`tb.sv`**
+### `tb.sv`
 
-```verilog
+```systemverilog
 
 import uvm_pkg::*;
 
@@ -118,7 +118,7 @@ endmodule
 ### **run the test**
 
 ```bash
-[simulator] [options] +UVM_TESTNAME=hello_world_test
+[simulator] [options] tb.sv hello_world_test.sv +UVM_TESTNAME=hello_world_test
 ```
 
 ### **outputs**
@@ -128,3 +128,11 @@ UVM_INFO ... ... Running test hello world test...
 UVM_INFO hello_world_test.sv ... uvm_test_top [hello_world_test] Hello World
 UVM_INFO ... ... [TEST_DONE] 'run' run phase is ready to proceed to the 'extract' phase
 ```
+
+## Takeaway
+
+1. with systemverilog, user should always declare the unit of delay explicitly. For example: do `#2.5ns clk200M = ~clk200M;` DON't do `#2.5 clk200M = ~clk200M;`
+
+2. use `$root` to unambiguously refer to a top-level instance. For example, `A.B.C` can mean the local `A.B.C` or the top-level `A.B.C`. `$root` allows explicit access to the top level.
+
+3. Whenever extends a uvm class, you always register it to `uvm_factory` by invoking `` `uvm_component_utils(child_class_name)`` or `` `uvm_object_utils(child_class_name)``. If child class is a parameterize class, you should use `` `uvm_component_param_utils(child_class_name) `` or `` `uvm_object_param_utils(child_class_name)``
