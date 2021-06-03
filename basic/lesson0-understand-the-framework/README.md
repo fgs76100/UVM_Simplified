@@ -1,5 +1,9 @@
 # UVM Framework
 
+## Typical Verification Component Environment Overview
+
+![verification_env](https://user-images.githubusercontent.com/31207745/120579309-e0591500-c459-11eb-9828-936be8bb6361.png)
+
 ## Verification Component Overview
 
 The following subsections describe UVM components.
