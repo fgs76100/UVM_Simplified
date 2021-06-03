@@ -160,7 +160,7 @@ package apb_pkg;
         ...
     endclass
 
-    // or use include instead
+    // or use `include and +incdir instead
     // `include "apb_data_item.sv"
     // `include "apb_master_driver.sv"
 
@@ -217,7 +217,7 @@ class apb_mst_driver_test extends uvm_test;
 
         // raise objection to avoid task be terminated abruptly
         phase.raise_objection(this);
-        wait($root.tb.rstn);  // wait the assertion of rstn
+        wait($root.tb.rstn);  // wait the de-assertion of rstn
 
         `uvm_info( this.get_type_name(), "do master driver test", UVM_MEDIUM)
         repeat(5) @(posedge this.apb_mst_driver.apb_if.clk);

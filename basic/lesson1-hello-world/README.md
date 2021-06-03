@@ -62,7 +62,7 @@ class hello_world_test extends uvm_test;
     task run_phase(uvm_phase phase);
         // raise objection to avoid task be terminated abruptly
         phase.raise_objection(this);
-        wait($root.tb.rstn);  // wait the assertion of rstn
+        wait($root.tb.rstn);  // wait the de-assertion of rstn
 
         `uvm_info(
             //         id           message      verbosity
@@ -71,7 +71,7 @@ class hello_world_test extends uvm_test;
 
         repeat(5) @(posedge $root.tb.clk200M);
 
-        // must drop objection when task is done, otherwise the whole test will not be terminated
+        // must drop objection when task is done, otherwise this run phase will not be terminated
         phase.drop_objection(this);  
     endtask : run_phase
 
@@ -117,6 +117,8 @@ endmodule
 
 ### **run the test**
 
+You can specify test case with hard-coded `run_test("hello_world_test")`, but for the best practice, we should always specify test name from the command line by `+UVM_TESTNAME=you_test_name`.
+
 ```bash
 [simulator] [options] tb.sv hello_world_test.sv +UVM_TESTNAME=hello_world_test
 ```
@@ -131,8 +133,8 @@ UVM_INFO ... ... [TEST_DONE] 'run' run phase is ready to proceed to the 'extract
 
 ## Takeaway
 
-1. with systemverilog, user should always declare the unit of delay explicitly. For example: do `#2.5ns clk200M = ~clk200M;` DON't do `#2.5 clk200M = ~clk200M;`
+1. with systemverilog, user should always declare the unit of delay explicitly. For example: do `#2.5ns clk200M = ~clk200M;` **DON't** do `#2.5 clk200M = ~clk200M;`
 
 2. use `$root` to unambiguously refer to a top-level instance. For example, `A.B.C` can mean the local `A.B.C` or the top-level `A.B.C`. `$root` allows explicit access to the top level.
 
-3. Whenever extends a uvm class, you always register it to `uvm_factory` by invoking `` `uvm_component_utils(child_class_name)`` or `` `uvm_object_utils(child_class_name)``. If child class is a parameterize class, you should use `` `uvm_component_param_utils(child_class_name) `` or `` `uvm_object_param_utils(child_class_name)``
+3. Whenever extends a uvm class, you always register it to `uvm_factory` by invoking `` `uvm_component_utils(child_class_name)`` or `` `uvm_object_utils(child_class_name)``. If child class is a parameterize class, you should use `` `uvm_component_param_utils(child_class_name #(parameters)) `` or `` `uvm_object_param_utils(child_class_name #(parameters))``
