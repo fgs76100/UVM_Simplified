@@ -120,7 +120,7 @@ endmodule
 You can specify test case with hard-coded `run_test("hello_world_test")`, but for the best practice, we should always specify test name from the command line by `+UVM_TESTNAME=you_test_name`.
 
 ```bash
-[simulator] [options] tb.sv hello_world_test.sv +UVM_TESTNAME=hello_world_test
+[simulator] [options] -f ../common/common.f tb.sv +UVM_TESTNAME=hello_world_test
 ```
 
 ### **outputs**

@@ -97,7 +97,7 @@ class apb_master_driver extends uvm_driver #(apb_data_item);
     endfunction
     
     virtual function void build_phase(uvm_phase phase);
-        // get interface object from database which should be set at testbench level
+        // get interface object, which should be set at testbench level, from the UVM database
         //                    type         cxt  hier  key     value
         if (!uvm_config_db#(apb_vif)::get(this, "", "apb_if", apb_if)) begin
             `uvm_fatal("NOVIF", "No such virtual interface")
@@ -144,9 +144,11 @@ class apb_master_driver extends uvm_driver #(apb_data_item);
 endclass
 ```
 
+> This driver is not finished yet. In next lesson, we will get it completed.
+> 
 ### `apb_pkg.sv`
 
-> Your should always pack whole dependency together inside a package.
+Your should always pack whole dependency together inside a package.
 
 ```systemverilog
 package apb_pkg;
@@ -167,33 +169,9 @@ package apb_pkg;
 endpackage
 ```
 
-### `tb.sv`
-
-```systemverilog
-`include "uvm_macros.svh"
-import uvm_pkg::*;
-import apb_pkg::*;
-
-module tb;
-
-    ...
-
-    apb_if apb_if0 (...);  // instantiate the interface, which should set to UVM database later.
-
-    ...
-
-    initial begin: UVM
-        // set apb_if0 object to UVM database, so driver could retrieve it from another hierarchy.
-        uvm_config_db #(apb_vif)::set(null, "*", "apb_if", apb_if0);
-        run_test();
-    end
-
-endmodule
-```
-
 ### `apb_mst_driver_test.sv`
 
-In this test, we create 5 write transactions from apb_data_item and then send them to DUT through the driver.
+In this test, we create 5 write transactions with apb_data_item and then send them to DUT through the driver.
 
 ```systemverilog
 class apb_mst_driver_test extends uvm_test;
@@ -253,13 +231,39 @@ class apb_mst_driver_test extends uvm_test;
 endclass
 ```
 
+### `tb.sv`
+
+```systemverilog
+`include "uvm_macros.svh"
+import uvm_pkg::*;
+import apb_pkg::*;  // import your package
+
+`include "apb_mst_driver_test.sv"  // include the test
+
+module tb;
+
+    ...
+
+    apb_if apb_if0 (...);  // instantiate the interface, which should set to UVM database later.
+
+    ...
+
+    initial begin: UVM
+        // set apb_if0 object to UVM database, so driver could retrieve it from another hierarchy.
+        uvm_config_db #(apb_vif)::set(null, "*", "apb_if", apb_if0);
+        run_test();
+    end
+
+endmodule
+```
+
 ## run test
 
-> File order matters
-
 ```bash
-[simulator] apb_pkg.sv tb.sv apb_mst_driver_test.sv +UVM_TESTNAME=apb_mst_driver_test [other options]
+[simulator] -f ../common.f apb_pkg.sv tb.sv +UVM_TESTNAME=apb_mst_driver_test [other options]
 ```
+
+> File order matters: you should import apb_pkg.sv first and then do tb.sv.
 
 ## outputs
 
