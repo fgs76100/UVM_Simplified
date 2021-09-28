@@ -31,7 +31,7 @@ xrun -uvm [other options]
 
 You could download the UVM library from [accellera](https://www.accellera.org/downloads/standards/uvm) and follow the readme.
 
-Or you know exactly what library you want to use, just put following line at your `~/.cshrc.my`
+Or you know exactly what library you want to use, just put following line in your `~/.cshrc.my`
 
 ```Tcsh
 setenv UVM_HOME /path/to/uvm/library/src
@@ -131,10 +131,10 @@ UVM_INFO hello_world_test.sv ... uvm_test_top [hello_world_test] Hello World
 UVM_INFO ... ... [TEST_DONE] 'run' run phase is ready to proceed to the 'extract' phase
 ```
 
-## Takeaway
+## Takeaways
 
 1. with systemverilog, user should always declare the unit of delay explicitly. For example: do `#2.5ns clk200M = ~clk200M;` **DON't** do `#2.5 clk200M = ~clk200M;`
 
 2. use `$root` to unambiguously refer to a top-level instance. For example, `A.B.C` can mean the local `A.B.C` or the top-level `A.B.C`. `$root` allows explicit access to the top level.
 
-3. Whenever extends a uvm class, you always register it to `uvm_factory` by invoking `` `uvm_component_utils(child_class_name)`` or `` `uvm_object_utils(child_class_name)``. If child class is a parameterize class, you should use `` `uvm_component_param_utils(child_class_name #(parameters)) `` or `` `uvm_object_param_utils(child_class_name #(parameters))``
+3. Whenever extends a uvm class, you always register it to `uvm_factory` by invoking `` `uvm_component_utils(subclass)`` or `` `uvm_object_utils(subclass)``. If child class is a parameterize class, you should use `` `uvm_component_param_utils(subclass#(parameters)) `` or `` `uvm_object_param_utils(subclass#(parameters))``

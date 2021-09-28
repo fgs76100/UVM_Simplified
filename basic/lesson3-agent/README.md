@@ -1,6 +1,17 @@
 # Lesson3 - agent
 
-In this lesson, we are going to create a apb master agent, but without the monitor.
+In this lesson, we are going to create an apb master agent, but without the monitor.
+
+The testbench hierarchy:
+
+- testbench
+  - apb_if (apb interface)
+  - DUT
+  - uvm_test_top (apb_master_basetest)
+    - apb_master_agent
+        - apb_sequencer
+        - apb_master_driver
+    - apb_base_sequence
 
 ## Sequencer
 First, we create an apb sequencer
@@ -8,11 +19,23 @@ First, we create an apb sequencer
 ```systemverilog
 // here we just use build-in sequencer because there is no need to create a new class by ourself
 typedef uvm_sequencer #(apb_data_item) apb_sequencer;
+
+// or you can extend apb_sequencer from the uvm_sequencer and register it to uvm_factory as well
+
+class apb_sequencer extends uvm_sequencer #(apb_data_item);
+
+   `uvm_component_utils(apb_sequencer)
+
+   function new(input string name, uvm_component parent=null);
+      super.new(name, parent);
+   endfunction : new
+
+endclass : apb_sequencer
+
 ```
 
-The quote from UVM user guide
-> The only time it is necessary to extend the uvm_sequencer class is if you
-need to add additional functionality, such as additional ports.
+Quote from UVM user guide
+> The only time it is necessary to extend the uvm_sequencer class is if you need to add additional functionality, such as additional ports.
 
 So in this lesson, we should just instantiate the UVM sequencer directly.
 
@@ -83,9 +106,9 @@ endclass
 ```
 
 Let’s recap what happens in this code:
-1. the driver uses `get_next_item()` to fetch the next data item.
-2. After sending it to the DUT, the driver informs the sequencer that the item was processed using `item_done()`
-3. optionally, driver could send the response to sequencer using `put_response()`
+1. the driver uses `seq_item_port.get_next_item()` to fetch the next data item.
+2. After sending it to the DUT, the driver informs the sequencer that the item was processed using `seq_item_port.item_done()`
+3. optionally, driver could send the response to sequencer using `seq_item_port.put_response()`
 
 
 >put_response() is a blocking method, so the sequence must do a corresponding get_response(rsp).
@@ -109,7 +132,7 @@ class apb_base_sequence extends uvm_sequence #(apb_data_item);
     `uvm_object_utils(apb_base_sequence)
     rand bit [11:0] start_address;
 
-    // note that always assign a default value to input "name"
+    // note that always assign a default value to input "name" if using uvm_object
     function new (string name = "apb_base_sequence");
         super.new(name);
         this.start_address = '0;
@@ -139,9 +162,20 @@ class apb_base_sequence extends uvm_sequence #(apb_data_item);
             `uvm_error(this.get_type_name(), "randomization failed")
 
         this.finish_item(this.req);
-        this.get_response(this.rsp);  // optional
-        `uvm_info(this.get_type_name(), this.rsp.convert2string(), UVM_MEDIUM)
+        this.get_response(this.rsp);
+        this.check_resp();
     endtask
+
+    virtual function void check_resp();
+        if(this.rsp.slverr) begin
+            `uvm_error(
+                this.get_type_name(), 
+                $sformatf("Got slaverror, %s", this.rsp.convert2string())
+            )
+        end
+        else
+            `uvm_info(this.get_type_name(), this.rsp.convert2string(), UVM_MEDIUM)
+    endfunction
 
     // Drop the objection in the post_body so the objection is removed when
     // the root sequence is complete. 
@@ -153,7 +187,7 @@ class apb_base_sequence extends uvm_sequence #(apb_data_item);
 endclass
 ```
 
-let's recap what happens in the `body` task, where you specify how the sequences to be executed
+let's recap what happens in the `body` task where you specify how the sequences to be executed
 
 1. we create the data item `this.req` through UVM factory.
 2. register the requeset using `start_item(this.req)`
@@ -178,7 +212,7 @@ endpackage: apb_pkg
 ```
 
 ## Test
-Now, create a test to execute the sequence on the sequencer using `apb_seq.start(apb_seqr)`
+Now, create a test to execute the sequence on the sequencer using `sequence.start(sequencer)`
 ### `apb_master_basetest.sv`
 
 ```systemverilog

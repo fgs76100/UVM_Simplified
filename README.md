@@ -8,21 +8,19 @@ This tutorial is for the designer who wants to quickly build or want a quick und
 
 Reader should have basic knowledge of following terms.
 
-- Object Orient Programming(OOP)
+- Object Orient Programming (OOP)
 - APB bus protocol
 - familiar with systemverilog syntax, especially class and interface
 
 ## Concepts are not covered
 
-- monitor
-- scoreboard
-- p_sequencer(user-defined sequencer), here we only use build-in one.
+- p_sequencer(user-defined sequencer), here we only use built-in one.
+- ...
 
-## lessons
+## The tutorial
 
-Here we gonna build a simple testbench with a APB slave(DUT).
+Here we gonna build a simple testbench with an APB slave (DUT).
 A comprehensive test environment hierarchies should look like below.
-But, the monitor and scoreboard are not mandatory so that they not gonna covered in this tutorial.
 
 - testbench
   - DUT(device under test)
@@ -33,12 +31,12 @@ But, the monitor and scoreboard are not mandatory so that they not gonna covered
     - UVM sequence
       - UVM sequence item
     - UVM ENV
-      - ~~scoreboard~~
+      - scoreboard
       - APB agent
         - driver
         - sequencer
-        - ~~monitor~~
+        - monitor
 
-## Other learning materials
+## Futher reading
 
 ...
