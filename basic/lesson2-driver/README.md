@@ -1,6 +1,6 @@
 # Lesson2 - Driver
 
-In this chapter, we gonna create a APB master driver to wiggle the signals on the APB interface.
+In this chapter, we gonna create an APB master driver to wiggle the signals on the APB interface.
 
 The testbench hierarchy:
 
@@ -11,19 +11,13 @@ The testbench hierarchy:
   - apb_if (apb interface)
   - DUT
 
-## Transaction
+## The transaction
 
 Before implement a driver, you should first implement the transaction base on design protocol.
 
 ### `apb_data_item.sv`
 
 ```systemverilog
-
-   // `uvm_object_utils_begin(apb_rw)
-   //   `uvm_field_int(addr, UVM_ALL_ON | UVM_NOPACK);
-   //   `uvm_field_int(data, UVM_ALL_ON | UVM_NOPACK);
-   //   `uvm_field_enum(kind_e,kind, UVM_ALL_ON | UVM_NOPACK);
-   // `uvm_object_utils_end
 
 class apb_data_item extends uvm_sequence_item;
     typedef enum bit {READ, WRITE} cmd_e;
@@ -36,45 +30,22 @@ class apb_data_item extends uvm_sequence_item;
     // register to uvm factory, so it could be created through uvm factory in the future
     `uvm_object_utils(apb_data_item)
 
-    // note that always assign a default value to input "name"
+    // note that always assign a default value to input "name" if using uvm object
     function new (string name = "apb_data_item");
         super.new(name);
     endfunction
 
+    // helper function
     virtual function string convert2string();
-        return $sformatf("cmd= %,s addr= %0h, data= %0h", cmd.name(), addr, data);
+        return $sformatf("cmd= %,s addr= 0x%0h, data= 0x%0h", cmd.name(), addr, data);
     endfunction
 
-    // virtual function void do_copy(uvm_object other);
-    //     // implement do copy for object.copy()
-    //     apb_data_item _copy;
-    //     super.do_copy(other);
-    //     $cast(_copy, other);
-    //     this.addr = _copy.addr;
-    //     this.cmd = _copy.cmd;
-    //     this.data = _copy.data;
-    //     this.slverr = _copy.slverr; 
-    // endfunction
-
-    // virtual function void do_print(uvm_printer printer);
-    //     super.do_print(printer);
-    //     printer.print_string("addr", this.addr)
-    //     printer.print_string("cmd", this.cmd.name())
-    //     printer.print_string("data", this.data)
-    // endfunction
-
-    // virtual function bit do_compare(uvm_object other, uvm_comparer comparer);
-    //     apb_data_item _copy;
-    //     $cast(_copy, other);
-    //     if(_copy.addr)
-    //     return (
-    //         super.do_compare(_copy, comparer)
-    //         & this.addr == _copy.addr
-    //         & this.data == _copy.data
-    //     )
-
-    // endfunction
-
+    // helper function
+    virtual function void do_copy(apb_data_item item);
+        this.addr = item.addr;
+        this.cmd = item.cmd;
+        this.data = item.data;
+    endfunction
 endclass
 ```
 
@@ -111,7 +82,10 @@ class apb_master_driver extends uvm_driver #(apb_data_item);
         this.apb_if.penable <= '0;
     endtask
 
-    virtual task drive_read(const ref apb_data_item tr, const ref apb_data_item rsp);
+    virtual task drive_read(const ref apb_data_item tr, output apb_data_item rsp);
+        rsp = apb_data_item::type_id::create("rsp");
+        rsp.copy(tr);
+        rsp.set_id_info(tr);
         this.apb_if.psel <= 1;
         this.apb_if.paddr <= tr.addr;
         this.apb_if.pwrite <= 0;
@@ -120,14 +94,18 @@ class apb_master_driver extends uvm_driver #(apb_data_item);
 
         @(posedge this.apb_if.pready);
         @(posedge this.apb_if.clk);
-        rsp.slverr <= this.apb_if.pslverr;
-        rsp.data <= this.apb_if.prdata;
         this.apb_if.penable <= 0;
         this.apb_if.psel <= 0;
 
+        rsp.slverr = this.apb_if.pslverr;
+        rsp.data = this.apb_if.prdata;
     endtask
 
-    virtual task drive_write(const ref apb_data_item tr, const ref apb_data_item rsp);
+    virtual task drive_write(const ref apb_data_item tr, output apb_data_item rsp);
+        rsp = apb_data_item::type_id::create("rsp");
+        rsp.copy(tr);
+        rsp.set_id_info(tr);
+
         this.apb_if.psel <= 1;
         this.apb_if.paddr <= tr.addr;
         this.apb_if.pwrite <= 1;
@@ -137,22 +115,27 @@ class apb_master_driver extends uvm_driver #(apb_data_item);
 
         @(posedge this.apb_if.pready);
         @(posedge this.apb_if.clk);
-        rsp.slverr <= this.apb_if.pslverr;
         this.apb_if.penable <= 0;
         this.apb_if.psel <= 0;
+
+        rsp.slverr = this.apb_if.pslverr;
     endtask
 endclass
 ```
 
-> This driver is not finished yet. In next lesson, we will get it completed.
-> 
+>Before providing the response, the response’s sequence and transaction id must be set to correspond to the request transaction using `rsp.set_id_info(tr)`.
+
+This driver is not finished yet. In next lesson, we will make it completed.
+
 ### `apb_pkg.sv`
 
 Your should always pack whole dependency together inside a package.
 
 ```systemverilog
 package apb_pkg;
+
     import uvm_pkg::*;
+    `include "uvm_macros.svh"
 
     class apb_data_item extends uvm_sequence_item;
         ...
@@ -181,7 +164,7 @@ class apb_mst_driver_test extends uvm_test;
 
     // constructor
     function new(string name = "apb_mst_driver_test", uvm_component parent=null);
-        super.new(name,parent);
+        super.new(name, parent);
     endfunction : new
 
     virtual function void build_phase(uvm_phase phase);
@@ -208,15 +191,14 @@ class apb_mst_driver_test extends uvm_test;
             apb_tr = apb_data_item::type_id::create("apb_tr");
             if(
                 !apb_tr.randomize() with {
-                    addr == start_address;
+                    addr == local::start_address;
                     cmd == apb_data_item::WRITE;
                 }
             )
                 `uvm_error(this.get_type_name(), "randomization failed")
 
-            apb_rsp = new apb_tr;  // do shallow copy
-            this.apb_mst_driver.drive_write(apb_tr, apb_rsp); // got write response
-            `uvm_info(this.get_type_name(), apb_rsp.convert2string(), UVM_MEDIUM)
+            this.apb_mst_driver.drive_write(apb_tr, apb_rsp);
+            `uvm_info(this.get_type_name(), apb_tr.convert2string(), UVM_MEDIUM)
 
             start_address += 'h4;
 
@@ -234,10 +216,11 @@ endclass
 ### `tb.sv`
 
 ```systemverilog
-`include "uvm_macros.svh"
+
 import uvm_pkg::*;
 import apb_pkg::*;  // import your package
 
+`include "uvm_macros.svh"
 `include "apb_mst_driver_test.sv"  // include the test
 
 module tb;
@@ -250,6 +233,7 @@ module tb;
 
     initial begin: UVM
         // set apb_if0 object to UVM database, so driver could retrieve it from another hierarchy.
+        //               type         cxt  hier  key       value
         uvm_config_db #(apb_vif)::set(null, "*", "apb_if", apb_if0);
         run_test();
     end
@@ -263,7 +247,7 @@ endmodule
 [simulator] -f ../common.f apb_pkg.sv tb.sv +UVM_TESTNAME=apb_mst_driver_test [other options]
 ```
 
-> File order matters: you should import apb_pkg.sv first and then do tb.sv.
+File order matters: you should import `apb_pkg.sv` first and then include `tb.sv`.
 
 ## outputs
 
@@ -274,3 +258,8 @@ UVM_INFO ... [apb_mst_driver_test] cmd= WRITE, addr= 108, data= xxxxxxxx
 UVM_INFO ... [apb_mst_driver_test] cmd= WRITE, addr= 10c, data= xxxxxxxx
 UVM_INFO ... [apb_mst_driver_test] cmd= WRITE, addr= 110, data= xxxxxxxx
 ```
+
+## Takeaways
+
+1. Always use `virtual` function and `virtual` task inside the class unless you want to prevent the users from overriding the base class.
+2. When you're using the randomize method, the scope of `with` constraint block is resolved to that instance being `randomized()`, not the scope of the class that contains the `randomized()` method call. If you want to access the variable of the class containing the randomize(), always use `local::varible_name` to reference it.

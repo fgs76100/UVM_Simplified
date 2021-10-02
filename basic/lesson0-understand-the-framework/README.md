@@ -34,13 +34,13 @@ execution and it also optionally can return the response from the DUT through th
 
 ```
 A monitor is a passive entity that samples DUT signals but does not drive them. Monitors collect coverage
-information and perform checking.
+information and perform protocol checking.
 ```
 
 ### Agent
 
 ```
-A agent is a abstract container that encapsulate a driver, sequencer and monitor.
+An agent is an abstract container that encapsulate a driver, sequencer and monitor.
 ```
 
 ### Environment
@@ -65,7 +65,7 @@ as well as provides data and sequence generation and inline constraints.
 
 ```
 UVM provide a class call uvm_config_db to allow different scoped components can share a common pool of configurations. 
-For example, user can set a value on the top module and then retrieve that value at component level.
+For example, user can set a value on the top module and then retrieve that value at another hierarchy.
 ```
 
 ## UVM facilities
